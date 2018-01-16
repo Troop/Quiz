@@ -1,0 +1,7 @@
+version: "Apple Swift version 3.1 (swiftlang-802.0.53 clang-802.0.42)"
+options: "adfe4776280d4b102fa539c4c9ce0c60"
+build_time: [569416642, 854755000]
+inputs:
+  "/Users/troopy/Desktop/SWIFT XCODE PROJECTS/Project 2/TrueFalseApp/TrueFalseStarter/TrueFalseStarter/ViewController.swift": [569416188, 0]
+  "/Users/troopy/Desktop/SWIFT XCODE PROJECTS/Project 2/TrueFalseApp/TrueFalseStarter/TrueFalseStarter/QuestionProvider.swift": [569413734, 0]
+  "/Users/troopy/Desktop/SWIFT XCODE PROJECTS/Project 2/TrueFalseApp/TrueFalseStarter/TrueFalseStarter/AppDelegate.swift": [533009056, 0]
