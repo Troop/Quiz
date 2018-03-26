@@ -10,14 +10,14 @@ import UIKit
 import GameKit
 import AudioToolbox
 
-class ViewController: UIViewController {
+class ViewController: UIViewController{
     
     let questionsPerRound = 4
     var questionsAsked = 0
     var correctQuestions = 0
     var indexOfSelectedQuestion: Int = 0
-    //We link up que VC with QProvider
-    let questions = QuestionProvider().questions
+    var correctSolution = ""
+    var gameQuestions = QuestionProvider()
     
     var gameSound: SystemSoundID = 0
     
@@ -29,75 +29,99 @@ class ViewController: UIViewController {
     @IBOutlet weak var playAgainButton: UIButton!
     
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         loadGameStartSound()
-        // Start game
+        //StartGame
         playGameStartSound()
         displayQuestion()
+        displayAnswer()
     }
-
-    override func didReceiveMemoryWarning() {
+    
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    func displayQuestion()
+    //FUNC HIDE BUTTONS
+    func hideButtons()
     {
-        var questionDictionary : [String:String] = [:]
-        var continuePlay :Bool = true
-        while continuePlay
-        {
-            print(indexOfSelectedQuestion)
-            indexOfSelectedQuestion = GKRandomSource.sharedRandom().nextInt(upperBound: questions.count)
-            if questions[indexOfSelectedQuestion]["alreadyAsked"] == "false"
-            {
-                print("ADDING")
-                questionDictionary = questions[indexOfSelectedQuestion]
-                questionDictionary["alreadyAsked"] = "true"
-                continuePlay = false
-            }
-        }
-        print("TOMA")
-        questionField.text = questionDictionary["Question"]
-        answer1.setTitle(questionDictionary["option1"], for: UIControlState.normal)
-        answer2.setTitle(questionDictionary["option2"], for: UIControlState.normal)
-        answer3.setTitle(questionDictionary["option3"], for: UIControlState.normal)
-        answer4.setTitle(questionDictionary["option4"], for:UIControlState.normal)
-        playAgainButton.isHidden = true
-        print("Displayed")
-    }
-    
-    func displayScore() {
-        // Hide the answer buttons
         answer1.isHidden = true
         answer2.isHidden = true
         answer3.isHidden = true
         answer4.isHidden = true
-        
-        // Display play again button
+    }
+    
+    //FIXED UNTIL HERE
+    //NO THE PROBLEM
+    func displayQuestion()
+    {
+        let number = questionIndex
+        let question = gameQuestions.randomQuestion(questionIndex : number)
+        questionField.text = question
+    }
+    func displayAnswer()
+    {
+        let number = questionIndex
+        let answerOptions = gameQuestions.getAnswers(questionIndex: number)
+        print(answerOptions, indexOfSelectedQuestion)
+        //correctSolution = gameQuestions.correctAnswer(questionIndex: indexOfSelectedQuestion)
+        answer1.setTitle(answerOptions[0], for: .normal)
+        answer2.setTitle(answerOptions[1], for: .normal)
+        answer3.setTitle(answerOptions[2], for: .normal)
+        answer4.setTitle(answerOptions[3], for: .normal)
+        playAgainButton.isHidden = true
+    }
+    
+    func reviveQuestion()
+     {
+        gameQuestions.questions.append(contentsOf: gameQuestions.beenAsked)
+        gameQuestions.beenAsked.removeAll()
+     }
+    func removeQuestions()
+    {
+        gameQuestions.beenAsked.append(gameQuestions.questions[questionIndex])
+        gameQuestions.questions.remove(at: questionIndex)
+    }
+    
+    func displayScore()
+    {
+        // Hide the answer buttons
+        hideButtons()
+        //Checking Answers
+        if correctQuestions == 4
+        {
+            questionField.text = "Way to go!\nYou got \(correctQuestions) out of \(questionsPerRound) correct!"
+        }
+        else
+        {
+            questionField.text = "Sorry!\nYou got things to learn  \(correctQuestions) out of \(questionsPerRound) correct..."
+        }
         playAgainButton.isHidden = false
-        
-        questionField.text = "Way to go!\nYou got \(correctQuestions) out of \(questionsPerRound) correct!"
-        
     }
     // Action you do when you press the button
     @IBAction func checkAnswer(_ sender: UIButton)
     {
-        // Increment the questions asked counter
         questionsAsked += 1
-        let selectedQuestionDict = questions[indexOfSelectedQuestion]
-        let correctAnswer = selectedQuestionDict["Answer"]
-        //swift case (Change it)
-        if(sender === answer1 &&  correctAnswer == answer1.titleLabel?.text!) || (sender === answer2 && correctAnswer == answer2.titleLabel?.text!) || (sender === answer3 &&  correctAnswer == answer3.titleLabel?.text!) || (sender === answer4 && correctAnswer == answer4.titleLabel?.text!)
+        if(sender === answer1 && answer1.titleLabel!.text == gameQuestions.correctAnswer(questionIndex: questionIndex)) ||
+          (sender === answer2 && answer2.titleLabel!.text == gameQuestions.correctAnswer(questionIndex: questionIndex)) ||
+          (sender === answer3 && answer3.titleLabel!.text == gameQuestions.correctAnswer(questionIndex: questionIndex)) ||
+          (sender === answer4 && answer4.titleLabel!.text == gameQuestions.correctAnswer(questionIndex: questionIndex))
         {
-            print("CORRECT")
+
             correctQuestions += 1
             questionField.text = "Correct!"
-        } else { questionField.text = "Sorry, wrong answer!" }
-        loadNextRoundWithDelay(seconds: 2)
+        }
+        else
+        {
+            questionField.text = "Sorry, wrong answer!"
+        }
+        removeQuestions()
+        loadNextRoundWithDelay(seconds: 1)
     }
-    
+    //CHECKPOINT
     func nextRound()
     {
         if questionsAsked == questionsPerRound
@@ -106,7 +130,9 @@ class ViewController: UIViewController {
             displayScore()
         } else {
             // Continue game
+            gameQuestions.getRandomNumber()
             displayQuestion()
+            displayAnswer()
         }
     }
     
@@ -117,13 +143,12 @@ class ViewController: UIViewController {
         answer2.isHidden = false
         answer3.isHidden = false
         answer4.isHidden = false
-        
+        //REMOVE QUESTIONS FROM GAME
+        reviveQuestion()
         questionsAsked = 0
         correctQuestions = 0
         nextRound()
     }
-
-    
     // MARK: Helper Methods
     
     func loadNextRoundWithDelay(seconds: Int) {
@@ -137,7 +162,6 @@ class ViewController: UIViewController {
             self.nextRound()
         }
     }
-    
     func loadGameStartSound() {
         let pathToSoundFile = Bundle.main.path(forResource: "GameSound", ofType: "wav")
         let soundURL = URL(fileURLWithPath: pathToSoundFile!)
